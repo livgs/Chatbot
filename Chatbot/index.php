@@ -8,7 +8,7 @@
             font-family: sans-serif;
             margin: 30px;
         }
-        #chat {
+        #chatBox {
             width: 400px;
             height: 400px;
             border: 1px solid #ccc;
@@ -33,10 +33,11 @@
     </style>
 </head>
 <body>
-<h2>Velkommen til vår kafé-chatbot!</h2>
+<h2>Velkommen til vår astronomi-chatbot!</h2>
 
-<div id="chat"></div>
-<input type="text" id="input" placeholder="skriv melding...">
+<div id="chatBox"></div>
+    <label for="input">Velg tema:</label>
+    <input type="text" id="input" placeholder="skriv melding...">
 <button id="sendBtn">Send</button>
 
 <script src="script.js"></script>
