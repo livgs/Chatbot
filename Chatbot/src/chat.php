@@ -15,7 +15,6 @@ if ($msg === "") {
     exit;
 }
 
-// Bestem tema (bruker match for klarhet)
 $purpose = "Uvisst";
 
 if (preg_match("/\b(hei|hallo|hei der)\b/u", $msg)) { //preg_match brukes for å sjekke om en tekst matcher et mønster
@@ -43,4 +42,4 @@ $reply = match($purpose) {
 // Send tilbake svar
 echo json_encode([
     "reply" => $reply
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); // Passer på at Unicode
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); 
