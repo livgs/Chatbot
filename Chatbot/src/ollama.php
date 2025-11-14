@@ -1,13 +1,13 @@
 <?php
+//Hjelpefunksjon
+function normalize_spaces(string $s): string {
+    // erstatter alle sekvenser av whitespace med ett enkelt mellomrom
+    return preg_replace('/\s+/u', ' ', $s);
+}
 function askOllamaStream(string $userMessage = '', float $temperature = 0.3): void
 {
     if (empty($userMessage)) return;
 
-    if (!headers_sent()) {
-        header('Content-Type: text/event-stream; charset=utf-8');
-        header('Cache-Control: no-cache');
-        header('X-Accel-Buffering: no');
-    }
     while (ob_get_level() > 0) { @ob_end_flush(); }
     @ob_implicit_flush(true);
 
@@ -16,7 +16,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         [
             "role" => "system",
             "content" =>
-                "Du skriver KUN på korrekt norsk bokmål. Ikke bland inn engelsk eller dansk.\n" .
+                "Du skriver KUN på korrekt norsk bokmål. Ikke bland inn engelsk eller dansk eller andre språk.\n" .
                 "Hold språket nøytralt, presist og kort (2–4 setninger).\n" .
                 "Bruk norske fagtermer. Eksempler: 'nettleser' (ikke 'browser'), 'ytelse' (ikke 'performance'), 'funksjon' (ikke 'feature'), 'forespørsel' (ikke 'request').\n" .
                 "Skriv 'NASAs', ikke 'NASA's'. Skriv 'oppdrag' eller 'ferd', ikke 'mission'.\n" .
@@ -51,7 +51,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
 
     // ——— Payload med temperatur ———
     $payload = json_encode([
-        "model"    => "llama3",
+        "model" => "llama3",
         "stream"   => true,
         "messages" => $messages,
         "options"  => [
@@ -117,7 +117,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         CURLOPT_WRITEFUNCTION  => function ($ch, $data) use ($fix_spacing, &$bufferedText, &$pendingSpaceAtNextChunk, $post_process) {
             $lines = explode("\n", $data);
             foreach ($lines as $line) {
-                $line = trim($line);
+                $line = rtrim($line, "\r\n");
                 if ($line === '') continue;
 
                 $json = json_decode($line, true);
@@ -132,25 +132,28 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
                     }
                     $pendingSpaceAtNextChunk = false;
 
+                    // Rydd opp dobbelte mellomrom i selve chunken
+                    $chunk = $fix_spacing($chunk);
+
+                    // Oppdater buffer for intern logikk
                     $bufferedText .= $chunk;
+
+                    // Kjør fix_spacing på hele bufferet før sending
                     $bufferedText = $fix_spacing($bufferedText);
 
-                    // Hvis chunken ender på punktum/utrop/spørsmål, husk at neste må starte med mellomrom
-                    if (preg_match('/[.!?]$/u', rtrim($chunk))) {
-                        $pendingSpaceAtNextChunk = true;
+                    // Hvis chunken ender på punktum/utrop/ spørsmål, flush buffer
+                    if (preg_match('/[.!?]$/u', rtrim($bufferedText))) {
+                        echo "data: " . $bufferedText . "\n\n";
+                        $bufferedText = '';
+                        @ob_flush(); flush();
                     }
 
-                    // Flush når passende
-                    if (preg_match('/[\s.,!?]$/u', $chunk)) {
-                        echo "data: " . $bufferedText . "\n\n";
-                        @ob_flush(); flush();
-                        $bufferedText = '';
-                    }
                 }
 
                 if (!empty($json['done'])) {
                     if ($bufferedText !== '') {
-                        echo "data: " . $post_process($bufferedText) . "\n\n";
+                        $bufferedText = normalize_spaces($bufferedText);
+                        echo "data: " . $bufferedText . "\n\n";
                         @ob_flush();
                         flush();
                         $bufferedText = '';

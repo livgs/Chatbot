@@ -45,17 +45,16 @@
         const evtSource = new EventSource(`chat.php?message=${encodeURIComponent(text)}`);
 
         evtSource.onmessage = function(event) {
-            let text = event.data.trim();
+            const text = event.data;
 
-            // Legg til mellomrom hvis nødvendig
-            if (!/[.?!]\s*$/.test(div.textContent.slice(-1)) && !/^[,.:!?]/.test(text)) {
-                div.textContent += " ";
+            // Hvis forrige chunk ikke slutter med mellomrom, og ny chunk ikke starter med mellomrom, legg til ett
+            if (div.textContent && !div.textContent.endsWith(' ') && !text.startsWith(' ')) {
+                div.textContent += ' ';
             }
 
             div.textContent += text;
             chatBox.scrollTop = chatBox.scrollHeight;
         };
-
 
         evtSource.onerror = function() {
             evtSource.close();
