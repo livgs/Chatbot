@@ -49,7 +49,7 @@ try {
         exit;
     }
 
-    // 4) Lager passord hash
+    // 4) Lager hash av passordet
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
     // 5) Setter det inn i databasen

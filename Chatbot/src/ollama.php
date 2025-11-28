@@ -1,7 +1,7 @@
 <?php
-//Hjelpefunksjon
+// Hjelpefunksjon
 function normalize_spaces(string $s): string {
-    // erstatter alle sekvenser av whitespace med ett enkelt mellomrom
+    // Erstatter all whitespace med ett enkelt mellomrom
     return preg_replace('/\s+/u', ' ', $s);
 }
 function askOllamaStream(string $userMessage = '', float $temperature = 0.3): void
@@ -11,7 +11,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
     while (ob_get_level() > 0) { @ob_end_flush(); }
     @ob_implicit_flush(true);
 
-    // ——— Stilguide + few-shot eksempel (styrer tone og ordvalg) ———
+    // Stilguide
     $messages = [
         [
             "role" => "system",
@@ -29,7 +29,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
                 "Hvis spørsmålet ikke gjelder astronomi: Svar nøyaktig 'Det veit jeg ikke, jeg er bare en liten astronomibot'."
         ],
 
-        // Few-shot: viser modellen nøyaktig stilen vi vil ha
+        // Viser modellen hvilken stil vi vil ha
         [
             "role" => "user",
             "content" => "Hvem er Buzz Aldrin?"
@@ -42,14 +42,14 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
                 "Aldrin spilte en viktig rolle i NASAs månelandingsprogram og har skrevet flere bøker om sine erfaringer som astronaut."
         ],
 
-        // Faktisk brukerforespørsel
+        // Brukerforespørsel
         [
             "role" => "user",
             "content" => $userMessage
         ]
     ];
 
-    // ——— Payload med temperatur ———
+    // Payload med temperatur
     $payload = json_encode([
         "model" => "llama3",
         "stream"   => true,
@@ -66,16 +66,16 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
     $bufferedText = '';
     $pendingSpaceAtNextChunk = false;
 
-    // 1) Fiks mellomrom etter . ! ? (og rydd doble mellomrom)
+    // 1) Fikser mellomrom etter . ! ? (og rydder doble mellomrom)
     $fix_spacing = static function (string $s): string {
-        // Legg til mellomrom etter punktum, utropstegn og spørsmålstegn hvis neste tegn ikke er mellomrom
+        // Legger til mellomrom etter punktum, utropstegn og spørsmålstegn hvis neste tegn ikke er mellomrom
         $s = preg_replace('/([.!?])(?=[^\s])/u', '$1 ', $s);
-        // Samle opp dobbelte mellomrom
+        // Samler opp dobbelte mellomrom
         $s = preg_replace('/ {2,}/', ' ', $s);
         return $s;
     };
 
-    // 2) Lett språk-normalisering (vanlige norwenglish/dansismer)
+    // 2) Språk-normalisering
     $normalize_nb = static function (string $s): string {
         $replacements = [
             // apostrofgenitiv
@@ -103,7 +103,6 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         return $s;
     };
 
-    // Kjede etterbehandling: spacing -> normalisering -> spacing igjen (i tilfelle endringer lager nye grenser)
     $post_process = static function (string $s) use ($fix_spacing, $normalize_nb): string {
         return $fix_spacing($normalize_nb($fix_spacing($s)));
     };
@@ -126,22 +125,21 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
                 if (isset($json['message']['content'])) {
                     $chunk = $json['message']['content'];
 
-                    // Hvis forrige chunk endte med punktum, legg til mellomrom foran ny
+                    // Hvis forrige chunk endte med punktum, legg til mellomrom foran den nye
                     if ($pendingSpaceAtNextChunk && $chunk !== '' && !preg_match('/^\s/u', $chunk)) {
                         $chunk = ' ' . $chunk;
                     }
                     $pendingSpaceAtNextChunk = false;
 
-                    // Rydd opp dobbelte mellomrom i selve chunken
+                    // Rydder opp dobbelte mellomrom
                     $chunk = $fix_spacing($chunk);
 
                     // Oppdater buffer for intern logikk
                     $bufferedText .= $chunk;
 
-                    // Kjør fix_spacing på hele bufferet før sending
+                    // Kjører fix_spacing på hele bufferet før sending
                     $bufferedText = $fix_spacing($bufferedText);
 
-                    // Hvis chunken ender på punktum/utrop/ spørsmål, flush buffer
                     if (preg_match('/[.!?]$/u', rtrim($bufferedText))) {
                         echo "data: " . $bufferedText . "\n\n";
                         $bufferedText = '';

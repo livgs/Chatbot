@@ -1,5 +1,5 @@
 <?php
-// === STREAMING HEADERS ===
+// Headere
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('Connection: keep-alive');
@@ -10,11 +10,11 @@ header('X-Accel-Buffering: no'); // for nginx
 while (ob_get_level() > 0) ob_end_flush();
 ob_implicit_flush(true);
 
-// === LAST INN FILER ===
+// Laster inn filer
 require_once __DIR__ . '/../src/ollama.php';
 require_once __DIR__ . '/../src/db.php';
 
-// === HENT BRUKERMELDING ===
+// Henter brukermelding
 $msg = $_GET['message'] ?? '';
 $msg = trim($msg);
 
@@ -24,7 +24,7 @@ if ($msg === '') {
     exit;
 }
 
-// === HENT FAKTA FRA DATABASEN (FULLTEKSTSØK) ===
+// Henter data fra databasen (fulltekstsøk)
 $facts = [];
 try {
     $db = get_db_connection();
@@ -46,16 +46,16 @@ try {
     $facts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (Throwable $e) {
-    // Kontrollert fallback hvis databasen feiler
+    // Fallback hvis databasen feiler
     echo "data: Det oppstod en feil med databasen.\n\n";
     flush();
     exit;
 }
 
-// === BYGG PROMPT ===
+// Bygger prompt
 if (!empty($facts)) {
 
-    // Formatér fakta som punktliste
+    // Formater fakta som punktliste
     $factLines = [];
     foreach ($facts as $f) {
         $line = "- " . $f['text'];
@@ -67,7 +67,7 @@ if (!empty($facts)) {
 
     $factsBlock = implode("\n", $factLines);
 
-    // Myk RAG: bruk fakta som hjelp, men tillat modellens egen kunnskap
+    // Myk RAG: bruker fakta som hjelp, men tillater modellens egen kunnskap
     $prompt =
         "Her er noen relevante astronomifakta som kan være nyttige når du svarer på spørsmålet under.\n" .
         "Svar på norsk bokmål, kort og presist (2–4 setninger).\n" .
@@ -76,10 +76,10 @@ if (!empty($facts)) {
         "Spørsmål: " . $msg;
 
 } else {
-    // Ingen fakta funnet → la modellen svare fritt basert på systemprompten i ollama.php
+    // Ingen fakta funnet -> lar modellen svare fritt basert på systemprompten i ollama.php
     $prompt = $msg;
 }
 
-// === SEND PROMPT TIL OLLAMA ===
+// Sender prompt til ollama
 askOllamaStream($prompt);
 ?>
