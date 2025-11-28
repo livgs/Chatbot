@@ -5,7 +5,7 @@
 
     // Vis velkomstmelding
     addMessage(
-        "Hei! Dette er en chatbot med astronomiske tema. <br>Velg mellom: <b>planeter</b>, <b>stjernetegn</b>, <b>galakser</b> eller <b>sorte hull</b>",
+        "Hei! Dette er en chatbot med astronomiske tema. <br>Spør i vei!</b>",
         "bot"
     );
 

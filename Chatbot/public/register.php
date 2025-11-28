@@ -41,9 +41,9 @@ try {
     $pdo = get_db_connection();
 
     // 3) Sjekker om e-posten allerede fins
-    $stmt = $pdo->prepare('SELECT 1 FROM users WHERE email = :email');
-    $stmt->execute([':email' => $email]);
-    if ($stmt->fetch()) {
+    $checkUser = $pdo->prepare('SELECT 1 FROM users WHERE email = :email');
+    $checkUser->execute([':email' => $email]);
+    if ($checkUser->fetch()) {
         echo "<p>En bruker med denne e-posten finnes allerede.</p>";
         echo '<a href="register.html">Tilbake</a>';
         exit;
@@ -53,12 +53,12 @@ try {
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
     // 5) Setter det inn i databasen
-    $insert = $pdo->prepare('
+    $insertUser = $pdo->prepare('
         INSERT INTO users (email, first_name, last_name, password_hash)
         VALUES (:email, :first_name, :last_name, :password_hash)
     ');
 
-    $insert->execute([
+    $insertUser->execute([
         ':email'         => $email,
         ':first_name'    => $firstName,
         ':last_name'     => $lastName,

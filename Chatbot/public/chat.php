@@ -15,10 +15,10 @@ require_once __DIR__ . '/../src/ollama.php';
 require_once __DIR__ . '/../src/db.php';
 
 // Henter brukermelding
-$msg = $_GET['message'] ?? '';
-$msg = trim($msg);
+$userMessage = $_GET['message'] ?? '';
+$userMessage = trim($userMessage);
 
-if ($msg === '') {
+if ($userMessage === '') {
     echo "data: Du må skrive en melding først.\n\n";
     flush();
     exit;
@@ -27,7 +27,7 @@ if ($msg === '') {
 // Henter data fra databasen (fulltekstsøk)
 $facts = [];
 try {
-    $db = get_db_connection();
+    $dbConnection = get_db_connection();
 
     $sql = "
         WITH q AS (
@@ -41,11 +41,11 @@ try {
         LIMIT 3
     ";
 
-    $stmt = $db->prepare($sql);
-    $stmt->execute([':q' => $msg]);
-    $facts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $findFactsStmt = $dbConnection->prepare($sql);
+    $findFactsStmt->execute([':q' => $userMessage]);
+    $facts = $findFactsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-} catch (Throwable $e) {
+} catch (Throwable $exception) {
     // Fallback hvis databasen feiler
     echo "data: Det oppstod en feil med databasen.\n\n";
     flush();
@@ -56,30 +56,30 @@ try {
 if (!empty($facts)) {
 
     // Formater fakta som punktliste
-    $factLines = [];
+    $formattedFacts = [];
     foreach ($facts as $f) {
         $line = "- " . $f['text'];
         if (!empty($f['source'])) {
             $line .= " (Kilde: " . $f['source'] . ")";
         }
-        $factLines[] = $line;
+        $formattedFacts[] = $line;
     }
 
-    $factsBlock = implode("\n", $factLines);
+    $factsTextBlock = implode("\n", $formattedFacts);
 
     // Myk RAG: bruker fakta som hjelp, men tillater modellens egen kunnskap
-    $prompt =
+    $modelPrompt =
         "Her er noen relevante astronomifakta som kan være nyttige når du svarer på spørsmålet under.\n" .
         "Svar på norsk bokmål, kort og presist (2–4 setninger).\n" .
         "Hvis faktaene passer til spørsmålet, bør du bruke dem i forklaringen din, men du kan også bruke annen astronomikunnskap så lenge du ikke motsier fakta.\n\n" .
-        "Fakta:\n" . $factsBlock . "\n\n" .
-        "Spørsmål: " . $msg;
+        "Fakta:\n" . $factsTextBlock . "\n\n" .
+        "Spørsmål: " . $userMessage . "\n\n";
 
 } else {
     // Ingen fakta funnet -> lar modellen svare fritt basert på systemprompten i ollama.php
-    $prompt = $msg;
+    $modelPrompt = $userMessage;
 }
 
 // Sender prompt til ollama
-askOllamaStream($prompt);
+askOllamaStream($modelPrompt);
 ?>

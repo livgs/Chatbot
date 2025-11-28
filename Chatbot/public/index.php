@@ -9,8 +9,7 @@
 <h2>Velkommen til vår astronomi-chatbot!</h2>
 
 <div id="chatBox"></div>
-    <label for="input">Velg tema:</label>
-    <input type="text" id="input" placeholder="skriv melding...">
+    <input type="text" id="input" placeholder="Skriv melding...">
 <button id="sendBtn">Send</button>
 
 <script src="script.js"></script>
