@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="no">
+<head>
+    <meta charset="utf-8">
+    <title>Registrer bruker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="register">
+<h1>Registrer ny bruker</h1>
+
+<form action="register.php" method="post">
+    <div class="form-row">
+    <label>E-post:    </label>
+
+        <input type="email" name="email" required>
+    </div>
+
+    <div class="form-row">
+    <label>Fornavn:</label>
+        <input type="text" name="first_name">
+    </div>
+
+    <div class="form-row">
+    <label>Etternavn:</label>
+        <input type="text" name="last_name">
+    </div>
+
+    <div class="form-row">
+    <label>Passord:</label>
+        <input type="password" name="password" required>
+    </div>
+
+    <div class="form-row">
+    <label>Gjenta passord:</label>
+        <input type="password" name="password_confirm" required>
+    </div>
+
+    <button class="register-btn" type="submit">Registrer</button>
+</form>
+</div>
+
+<a href="index.php">Tilbake til chatbot</a>
+
+</body>
+</html>
