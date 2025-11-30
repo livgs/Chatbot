@@ -5,7 +5,7 @@
 -- Dumped from database version 17.4
 -- Dumped by pg_dump version 17.0
 
--- Started on 2025-11-28 11:11:31 CET
+-- Started on 2025-11-30 18:05:54 CET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -28,12 +28,29 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 
 --
--- TOC entry 3718 (class 0 OID 0)
+-- TOC entry 3747 (class 0 OID 0)
 -- Dependencies: 3
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
+-- TOC entry 4 (class 3079 OID 26454)
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- TOC entry 3748 (class 0 OID 0)
+-- Dependencies: 4
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
@@ -45,7 +62,7 @@ CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
 
 
 --
--- TOC entry 3719 (class 0 OID 0)
+-- TOC entry 3749 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: 
 --
@@ -58,7 +75,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 225 (class 1259 OID 26321)
+-- TOC entry 226 (class 1259 OID 26321)
 -- Name: chat_messages; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -76,7 +93,7 @@ CREATE TABLE public.chat_messages (
 ALTER TABLE public.chat_messages OWNER TO postgres;
 
 --
--- TOC entry 224 (class 1259 OID 26320)
+-- TOC entry 225 (class 1259 OID 26320)
 -- Name: chat_messages_message_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -91,8 +108,8 @@ CREATE SEQUENCE public.chat_messages_message_id_seq
 ALTER SEQUENCE public.chat_messages_message_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3720 (class 0 OID 0)
--- Dependencies: 224
+-- TOC entry 3750 (class 0 OID 0)
+-- Dependencies: 225
 -- Name: chat_messages_message_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -100,7 +117,7 @@ ALTER SEQUENCE public.chat_messages_message_id_seq OWNED BY public.chat_messages
 
 
 --
--- TOC entry 223 (class 1259 OID 26312)
+-- TOC entry 224 (class 1259 OID 26312)
 -- Name: chat_sessions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -108,14 +125,15 @@ CREATE TABLE public.chat_sessions (
     session_id uuid DEFAULT gen_random_uuid() NOT NULL,
     started_at_utc timestamp with time zone DEFAULT now() NOT NULL,
     last_active_utc timestamp with time zone DEFAULT now() NOT NULL,
-    client_label character varying(255)
+    client_label character varying(255),
+    user_id integer
 );
 
 
 ALTER TABLE public.chat_sessions OWNER TO postgres;
 
 --
--- TOC entry 222 (class 1259 OID 26297)
+-- TOC entry 223 (class 1259 OID 26297)
 -- Name: fact_tag_links; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -128,7 +146,7 @@ CREATE TABLE public.fact_tag_links (
 ALTER TABLE public.fact_tag_links OWNER TO postgres;
 
 --
--- TOC entry 221 (class 1259 OID 26287)
+-- TOC entry 222 (class 1259 OID 26287)
 -- Name: fact_tags; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -142,7 +160,7 @@ CREATE TABLE public.fact_tags (
 ALTER TABLE public.fact_tags OWNER TO postgres;
 
 --
--- TOC entry 220 (class 1259 OID 26286)
+-- TOC entry 221 (class 1259 OID 26286)
 -- Name: fact_tags_tag_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -158,8 +176,8 @@ CREATE SEQUENCE public.fact_tags_tag_id_seq
 ALTER SEQUENCE public.fact_tags_tag_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3721 (class 0 OID 0)
--- Dependencies: 220
+-- TOC entry 3751 (class 0 OID 0)
+-- Dependencies: 221
 -- Name: fact_tags_tag_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -167,7 +185,7 @@ ALTER SEQUENCE public.fact_tags_tag_id_seq OWNED BY public.fact_tags.tag_id;
 
 
 --
--- TOC entry 219 (class 1259 OID 26277)
+-- TOC entry 220 (class 1259 OID 26277)
 -- Name: facts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -186,7 +204,7 @@ CREATE TABLE public.facts (
 ALTER TABLE public.facts OWNER TO postgres;
 
 --
--- TOC entry 227 (class 1259 OID 26438)
+-- TOC entry 228 (class 1259 OID 26438)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -202,7 +220,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 226 (class 1259 OID 26437)
+-- TOC entry 227 (class 1259 OID 26437)
 -- Name: users_id_user_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -218,8 +236,8 @@ CREATE SEQUENCE public.users_id_user_seq
 ALTER SEQUENCE public.users_id_user_seq OWNER TO postgres;
 
 --
--- TOC entry 3722 (class 0 OID 0)
--- Dependencies: 226
+-- TOC entry 3752 (class 0 OID 0)
+-- Dependencies: 227
 -- Name: users_id_user_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -227,7 +245,7 @@ ALTER SEQUENCE public.users_id_user_seq OWNED BY public.users.id_user;
 
 
 --
--- TOC entry 3534 (class 2604 OID 26324)
+-- TOC entry 3571 (class 2604 OID 26324)
 -- Name: chat_messages message_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -235,7 +253,7 @@ ALTER TABLE ONLY public.chat_messages ALTER COLUMN message_id SET DEFAULT nextva
 
 
 --
--- TOC entry 3530 (class 2604 OID 26290)
+-- TOC entry 3567 (class 2604 OID 26290)
 -- Name: fact_tags tag_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -243,7 +261,7 @@ ALTER TABLE ONLY public.fact_tags ALTER COLUMN tag_id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3536 (class 2604 OID 26441)
+-- TOC entry 3573 (class 2604 OID 26441)
 -- Name: users id_user; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -251,95 +269,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id_user SET DEFAULT nextval('public.u
 
 
 --
--- TOC entry 3710 (class 0 OID 26321)
--- Dependencies: 225
--- Data for Name: chat_messages; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.chat_messages (message_id, session_id, role, text, created_at_utc, origin_fact_id) FROM stdin;
-\.
-
-
---
--- TOC entry 3708 (class 0 OID 26312)
--- Dependencies: 223
--- Data for Name: chat_sessions; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.chat_sessions (session_id, started_at_utc, last_active_utc, client_label) FROM stdin;
-\.
-
-
---
--- TOC entry 3707 (class 0 OID 26297)
--- Dependencies: 222
--- Data for Name: fact_tag_links; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.fact_tag_links (fact_id, tag_id) FROM stdin;
-\.
-
-
---
--- TOC entry 3706 (class 0 OID 26287)
--- Dependencies: 221
--- Data for Name: fact_tags; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.fact_tags (tag_id, name, description) FROM stdin;
-\.
-
-
---
--- TOC entry 3704 (class 0 OID 26277)
--- Dependencies: 219
--- Data for Name: facts; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.facts (fact_id, title, text, source, language, created_at_utc, last_verified_on) FROM stdin;
-solsystemet_solen_sentrum	Solens posisjon i solsystemet	Solen utgjør sentrum av solsystemet.	Store norske leksikon – solsystemet	no	2025-11-14 10:41:06.651862+01	2025-11-14
-\.
-
-
---
--- TOC entry 3712 (class 0 OID 26438)
--- Dependencies: 227
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.users (id_user, email, first_name, last_name, password_hash) FROM stdin;
-\.
-
-
---
--- TOC entry 3723 (class 0 OID 0)
--- Dependencies: 224
--- Name: chat_messages_message_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.chat_messages_message_id_seq', 1, false);
-
-
---
--- TOC entry 3724 (class 0 OID 0)
--- Dependencies: 220
--- Name: fact_tags_tag_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.fact_tags_tag_id_seq', 1, false);
-
-
---
--- TOC entry 3725 (class 0 OID 0)
--- Dependencies: 226
--- Name: users_id_user_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.users_id_user_seq', 1, false);
-
-
---
--- TOC entry 3550 (class 2606 OID 26330)
+-- TOC entry 3587 (class 2606 OID 26330)
 -- Name: chat_messages chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -348,7 +278,7 @@ ALTER TABLE ONLY public.chat_messages
 
 
 --
--- TOC entry 3548 (class 2606 OID 26319)
+-- TOC entry 3585 (class 2606 OID 26319)
 -- Name: chat_sessions chat_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -357,7 +287,7 @@ ALTER TABLE ONLY public.chat_sessions
 
 
 --
--- TOC entry 3546 (class 2606 OID 26301)
+-- TOC entry 3583 (class 2606 OID 26301)
 -- Name: fact_tag_links fact_tag_links_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -366,7 +296,7 @@ ALTER TABLE ONLY public.fact_tag_links
 
 
 --
--- TOC entry 3542 (class 2606 OID 26296)
+-- TOC entry 3579 (class 2606 OID 26296)
 -- Name: fact_tags fact_tags_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -375,7 +305,7 @@ ALTER TABLE ONLY public.fact_tags
 
 
 --
--- TOC entry 3544 (class 2606 OID 26294)
+-- TOC entry 3581 (class 2606 OID 26294)
 -- Name: fact_tags fact_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -384,7 +314,7 @@ ALTER TABLE ONLY public.fact_tags
 
 
 --
--- TOC entry 3539 (class 2606 OID 26285)
+-- TOC entry 3576 (class 2606 OID 26285)
 -- Name: facts facts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -393,7 +323,7 @@ ALTER TABLE ONLY public.facts
 
 
 --
--- TOC entry 3552 (class 2606 OID 26447)
+-- TOC entry 3589 (class 2606 OID 26447)
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -402,7 +332,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3554 (class 2606 OID 26445)
+-- TOC entry 3591 (class 2606 OID 26445)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -411,7 +341,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3540 (class 1259 OID 26436)
+-- TOC entry 3577 (class 1259 OID 26436)
 -- Name: idx_facts_search_vector_gin; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -419,7 +349,7 @@ CREATE INDEX idx_facts_search_vector_gin ON public.facts USING gin (search_vecto
 
 
 --
--- TOC entry 3557 (class 2606 OID 26336)
+-- TOC entry 3595 (class 2606 OID 26336)
 -- Name: chat_messages chat_messages_origin_fact_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -428,7 +358,7 @@ ALTER TABLE ONLY public.chat_messages
 
 
 --
--- TOC entry 3558 (class 2606 OID 26331)
+-- TOC entry 3596 (class 2606 OID 26331)
 -- Name: chat_messages chat_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -437,7 +367,16 @@ ALTER TABLE ONLY public.chat_messages
 
 
 --
--- TOC entry 3555 (class 2606 OID 26302)
+-- TOC entry 3594 (class 2606 OID 26449)
+-- Name: chat_sessions chat_sessions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.chat_sessions
+    ADD CONSTRAINT chat_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id_user);
+
+
+--
+-- TOC entry 3592 (class 2606 OID 26302)
 -- Name: fact_tag_links fact_tag_links_fact_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -446,7 +385,7 @@ ALTER TABLE ONLY public.fact_tag_links
 
 
 --
--- TOC entry 3556 (class 2606 OID 26307)
+-- TOC entry 3593 (class 2606 OID 26307)
 -- Name: fact_tag_links fact_tag_links_tag_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -454,7 +393,7 @@ ALTER TABLE ONLY public.fact_tag_links
     ADD CONSTRAINT fact_tag_links_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES public.fact_tags(tag_id) ON DELETE CASCADE;
 
 
--- Completed on 2025-11-28 11:11:31 CET
+-- Completed on 2025-11-30 18:05:54 CET
 
 --
 -- PostgreSQL database dump complete
