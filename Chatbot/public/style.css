@@ -2,39 +2,55 @@ body {
     font-family: sans-serif;
     margin: 30px;
 }
+
+h2 {
+    text-align: center;
+}
+
+.title-left {
+    text-align: left;
+}
+
 #chatBox {
-    width: 400px;
+    width: 650px;
     height: 400px;
-    border: 1px solid #ccc;
+    border: 2px solid deepskyblue;
+    border-radius: 5px;
     padding: 10px;
     overflow-y: auto;
     margin-bottom: 10px;
 }
+
 .msg {
     margin: 6px 0;
     padding: 8px 12px;
     border-radius: 10px;
-    max-width: 80%;
+    max-width: 45%;
 }
 .user-msg {
     background-color: #d1f1ff;
     text-align: right;
+    margin-left: auto;
 }
 .bot-msg {
     background-color: #f1f1f1;
     text-align: left;
 }
 
+.errors {
+    color:red;
+    margin-bottom:15px;
+}
 
 .register, .login {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    border: 2px solid aqua;
+    border: 2px solid deepskyblue;
     padding: 20px;
     border-radius: 10px;
-    background-color: snow;
+    background-color: hsl(208, 100%, 98%);
     width: 500px;
     margin: 50px auto 0;
 }
@@ -69,13 +85,58 @@ body {
     box-sizing: border-box;
 }
 
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 670px;
+}
+
+#input {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 16px;
+    height: 18px;
+    border: 1px solid black;
+    border-radius: 2px;
+}
+
+.btn {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: inline-block;
+    background-color: #d1f1ff;
+}
+
+.btn-return {
+    margin: 20px auto 0;   /* 20px topp, venstre-margin 0 for venstrejustering */
+    display: block;
+}
+
+
+.btn-submit {
+    background-color: deepskyblue;
+    color: white;
+}
+
+.auth-btn {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    width: 100px;
+    gap: 10px;
+}
+
 .login-btn, .register-btn {
     margin: 30px auto 0 auto;
-    background-color: dodgerblue;
+    background-color: deepskyblue;
     color: white;
     padding: 10px;
     border-radius: 10px;
-    border: azure;
+    border: none;
     cursor: pointer;
     display: block;
     font-size: 16px;

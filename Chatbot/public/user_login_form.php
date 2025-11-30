@@ -6,6 +6,18 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<h2>Logg inn</h2>
+
+<?php if (!empty($melding)): ?>
+    <div class="errors">
+        <ul>
+            <?php foreach ($melding as $m): ?>
+                <li><?= htmlspecialchars($m) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
 <div class="login">
     <form method="POST" action="user_login.php">
         <div class="form-row">
@@ -22,7 +34,7 @@
     </form>
 </div>
 
-<a href="index.php">Tilbake til chatbot</a>
+<button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot</button>
 
 </body>
 </html>
