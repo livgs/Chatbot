@@ -60,6 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':password_hash' => $hash,
         ]);
 
+        $_SESSION['innlogget'] = [
+            'id' => $pdo->lastInsertId(),
+            'email' => $email,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+        ];
 
         $_SESSION['popup'] = [
             'type' => 'success',

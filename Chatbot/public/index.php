@@ -32,7 +32,10 @@
     <title>Min Chatbot</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+<div class="page-container">
+
 <h2 class="title-left">Velkommen til vår astronomi-chatbot!</h2>
 
 <div id="chatBox"></div>
@@ -42,10 +45,16 @@
 </div>
 
 <div class="auth-btn">
-    <button class="btn" onclick="window.location.href='user_login_form.php'">Logg inn<br>
-    <button class="btn" onclick="window.location.href='register_form.php'">Registrer<br>
+    <?php if (!isset($_SESSION['innlogget'])): ?>
+        <button class="btn" onclick="window.location.href='user_login_form.php'">Logg inn<br>
+        <button class="btn" onclick="window.location.href='register_form.php'">Registrer<br>
+    <?php else: ?>
+        <button class="btn" onclick="window.location.href='logout.php'">
+            Logg ut (<?= htmlspecialchars($_SESSION['innlogget']['first_name']) ?>)
+        </button>
+    <?php endif; ?>
 </div>
-
+</div>
 
 <script src="script.js"></script>
 </body>

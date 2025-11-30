@@ -14,10 +14,14 @@ $errors = $errors ?? [];
 </head>
 
 <body>
-<div class="register">
-<h1>Registrer ny bruker</h1>
+<div class="header-row">
+    <button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot</button>
+    <h2>Registrer ny bruker</h2>
+</div>
 
-<!-- Feilmeldinger -->
+<div class="register">
+
+        <!-- Feilmeldinger -->
 <?php if (!empty($errors)): ?>
     <div class="errors">
         <ul>
@@ -57,8 +61,5 @@ $errors = $errors ?? [];
     <button class="register-btn" type="submit">Registrer</button>
 </form>
 </div>
-
-<button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot<br>
-
 </body>
 </html>

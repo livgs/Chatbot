@@ -36,10 +36,13 @@
         addMessage(text, "user");
         input.value = "";
 
+        // "Bot-boble med ... mens chatboten tenker
         const div = document.createElement("div");
-        div.className = "msg bot-msg";
-        div.textContent = "";
+        div.className = "msg bot-msg typing";
         chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        let receivedFirstChunk = false;
 
         // Stream via EventSource
         const evtSource = new EventSource(`chat.php?message=${encodeURIComponent(text)}`);
@@ -47,14 +50,20 @@
         evtSource.onmessage = function(event) {
             const text = event.data;
 
-            // Hvis forrige chunk ikke slutter med mellomrom, og ny chunk ikke starter med mellomrom, legg til ett
-            if (div.textContent && !div.textContent.endsWith(' ') && !text.startsWith(' ')) {
-                div.textContent += ' ';
+            if (!receivedFirstChunk) {
+                div.classList.remove("typing");
+                div.textContent = "";
+                receivedFirstChunk = true;
+            } else {
+                if (div.textContent && !div.textContent.endsWith(' ') && !text.startsWith(' ')) {
+                    div.textContent += ' ';
+                }
             }
 
             div.textContent += text;
             chatBox.scrollTop = chatBox.scrollHeight;
         };
+
 
         evtSource.onerror = function() {
             evtSource.close();

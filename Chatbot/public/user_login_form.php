@@ -6,7 +6,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="header-row">
+<button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot</button>
 <h2>Logg inn</h2>
+</div>
+
 
 <?php if (!empty($melding)): ?>
     <div class="errors">
@@ -33,8 +37,5 @@
         <button type="submit" name="login" class="login-btn">Logg inn</button>
     </form>
 </div>
-
-<button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot</button>
-
 </body>
 </html>
