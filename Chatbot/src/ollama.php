@@ -13,7 +13,9 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
     }
 
     // Sørg for at output kan streames til EventSource
-    while (ob_get_level() > 0) { @ob_end_flush(); }
+    while (ob_get_level() > 0) {
+        @ob_end_flush();
+    }
     @ob_implicit_flush(true);
 
     // Stilguide + strengere faktakrav og domenebegrensning
@@ -21,13 +23,22 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
         [
             "role" => "system",
             "content" =>
-                "Du skriver KUN på korrekt norsk bokmål. Ikke bland inn engelsk, dansk eller andre språk.\n" .
-                "Hold språket nøytralt, presist og kort (helst 2–4 setninger).\n" .
-                "Bruk norske fagtermer. Eksempler: 'nettleser' (ikke 'browser'), 'ytelse' (ikke 'performance'), " .
-                "'funksjon' (ikke 'feature'), 'forespørsel' (ikke 'request').\n" .
-                "Skriv 'NASAs', ikke 'NASA's'. Skriv 'oppdrag' eller 'ferd', ikke 'mission'.\n" .
-                "Sett mellomrom etter punktum, spørsmålstegn og utropstegn.\n" .
-                "Hvis du ikke er rimelig sikker på et faktasvar, skal du si at du ikke er sikker og unngå å gjette."
+                "Du skriver KUN på korrekt norsk bokmål.\n" .
+                "\n" .
+                "ARTIKLER (SVÆRT VIKTIG):\n" .
+                "- Bruk riktig kjønn og riktig artikkel: 'en' (hankjønn), 'ei' (hunkjønn), 'et' (intetkjønn).\n" .
+                "- Bruk korrekt bestemt form: 'solen', 'månen', 'galaksen', 'universet', 'oppdraget', 'romsonden'.\n" .
+                "- Ikke bland formene. Aldri skriv ting som 'et galakse', 'ei planeten', 'en atmosfærete'.\n" .
+                "- Hvis du er usikker på kjønn: bruk den vanligste bokmålsformen ('en stjerne', 'en planet', 'ei sol', 'et teleskop', 'et romfartøy').\n" .
+                "\n" .
+                "Alt språk skal være:\n" .
+                "- Korrekt bokmål\n" .
+                "- Klart og presist\n" .
+                "- 2–4 korte setninger\n" .
+                "- Ingen engelske ord\n" .
+                "- Ingen vage uttrykk som 'i dagens form', 'på en måte', 'til en viss grad'.\n" .
+                "\n" .
+                "Hvis du er usikker på fakta, si det tydelig uten å gjette."
         ],
         [
             "role" => "system",
@@ -78,7 +89,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
         CURLOPT_POST           => true,
         CURLOPT_HTTPHEADER     => ["Content-Type: application/json"],
         CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_RETURNTRANSFER => true,   // <- vi vil ha hele svaret som string
+        CURLOPT_RETURNTRANSFER => true,   // vi vil ha hele svaret som string
         CURLOPT_TIMEOUT        => 0,
     ]);
 
@@ -89,7 +100,8 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
         curl_close($ch);
 
         echo "data: Det oppstod en feil mot Ollama: $errorMsg\n\n";
-        @ob_flush(); flush();
+        @ob_flush();
+        flush();
         return;
     }
 
@@ -99,7 +111,8 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
 
     if (!is_array($json) || empty($json['message']['content'])) {
         echo "data: Jeg klarte ikke å tolke svaret fra modellen.\n\n";
-        @ob_flush(); flush();
+        @ob_flush();
+        flush();
         return;
     }
 
@@ -109,6 +122,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
     $answer = cleanWhitespace($answer);
 
     echo "data: " . $answer . "\n\n";
-    @ob_flush(); flush();
+    @ob_flush();
+    flush();
 }
 ?>

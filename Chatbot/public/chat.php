@@ -39,11 +39,14 @@ saveChatMessage($chatSessionId, 'user', $userMessage, null);
 // Sjekk om brukeren spør etter kilde
 $asksForSource = (bool) preg_match('/kilde/i', $userMessage);
 
-// Henter fakta fra databasen (fulltekstsøk)
-$facts = [];
+// Henter fakta fra databasen (fulltekstsøk) + siste meldinger (for kontekst)
+$facts        = [];
+$historyBlock = '';
+
 try {
     $dbConnection = get_db_connection();
 
+    // --- 2.1 Fakta-søk (som før) ---
     $sql = "
         WITH q AS (
             SELECT websearch_to_tsquery('norwegian', :q) AS tsq
@@ -62,6 +65,30 @@ try {
     $findFactsStmt = $dbConnection->prepare($sql);
     $findFactsStmt->execute([':q' => $userMessage]);
     $facts = $findFactsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // --- 2.2 Hent siste meldinger i denne chat-sesjonen (for kontekst) ---
+    // F.eks. de siste 6 meldingene (både bruker og bot)
+    $historyStmt = $dbConnection->prepare("
+        SELECT role, text
+        FROM chat_messages
+        WHERE session_id = :session_id
+        ORDER BY created_at_utc DESC
+        LIMIT 6
+    ");
+    $historyStmt->execute([':session_id' => $chatSessionId]);
+    $historyRows = array_reverse($historyStmt->fetchAll(PDO::FETCH_ASSOC)); // eldste først
+
+    if (!empty($historyRows)) {
+        $lines = [];
+        foreach ($historyRows as $row) {
+            $roleLabel = $row['role'] === 'user' ? 'Bruker' : 'Bot';
+            $lines[] = $roleLabel . ': ' . $row['text'];
+        }
+
+        $historyBlock =
+            "Her er de siste meldingene i samtalen (bruk dette for å forstå oppfølgingsspørsmål):\n" .
+            implode("\n", $lines) . "\n";
+    }
 
 } catch (Throwable $exception) {
     echo "data: Det oppstod en feil med databasen.\n\n";
@@ -99,7 +126,7 @@ if (!empty($facts) && $asksForSource) {
     exit;
 }
 
-// 2) Ellers: bygg prompt til modellen (RAG + LLM)
+// 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
 if (!empty($facts)) {
 
     // Formater fakta som punktliste
@@ -114,11 +141,14 @@ if (!empty($facts)) {
 
     $factsTextBlock = implode("\n", $factLines);
 
-    // RAG-prompt: bruk fakta, men ikke motsi dem
+    // RAG-prompt: bruk fakta, ta hensyn til kort historikk
     $modelPrompt =
-        "Du får noen fakta og et spørsmål.\n" .
-        "Du skal svare basert på fakta-listen under. Ikke finn opp nye detaljer som motsier fakta.\n" .
+        "Du får litt samtalekontekst, noen fakta og et spørsmål.\n" .
+        "Bruk konteksten til å forstå hva brukeren mener (oppfølgingsspørsmål osv.).\n" .
+        "Du skal svare basert på fakta-listen under og den korte samtalekonteksten.\n" .
+        "Ikke finn opp nye detaljer som motsier fakta.\n" .
         "Svar på norsk bokmål, kort og presist (2–4 setninger).\n\n" .
+        ($historyBlock !== '' ? $historyBlock . "\n" : "") .
         "Fakta:\n" . $factsTextBlock . "\n\n" .
         "Spørsmål: " . $userMessage . "\n\n" .
         "Svar:";
@@ -127,8 +157,12 @@ if (!empty($facts)) {
 
 } else {
 
-    // Ingen fakta funnet -> la modellen svare fritt (styrt av systemprompten i ollama.php)
-    askOllamaStream($userMessage, 0.3);
+    // Ingen fakta funnet -> la modellen svare fritt, men med kort historikk
+    $modelPrompt =
+        ($historyBlock !== '' ? $historyBlock . "\n" : "") .
+        "Spørsmål: " . $userMessage;
+
+    askOllamaStream($modelPrompt, 0.3);
 }
 
 ?>
