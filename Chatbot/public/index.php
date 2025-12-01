@@ -46,8 +46,12 @@
 
 <div class="auth-btn">
     <?php if (!isset($_SESSION['innlogget'])): ?>
-        <button class="btn auth-login-btn" onclick="window.location.href='user_login_form.php'">Logg inn<br>
-        <button class="btn auth-register-btn" onclick="window.location.href='register_form.php'">Registrer deg<br>
+        <button class="btn auth-login-btn" onclick="window.location.href='user_login_form.php'">
+            Logg inn
+        </button>
+        <button class="btn auth-register-btn" onclick="window.location.href='register_form.php'">
+            Registrer deg
+        </button>
     <?php else: ?>
         <button class="btn auth-logout-btn" onclick="window.location.href='logout.php'">
             Logg ut (<?= htmlspecialchars($_SESSION['innlogget']['first_name']) ?>)

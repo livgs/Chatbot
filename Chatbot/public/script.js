@@ -5,8 +5,8 @@
 
     // Vis velkomstmelding
     addMessage(
-        "Hei! Dette er en chatbot med astronomiske tema. <br>Spør i vei!</b>",
-        "bot"
+        "Hei! Dette er en chatbot med astronomiske tema. <br><b>Spør i vei!</b>",
+    "bot"
     );
 
     input.addEventListener("keypress", async (e) => {
