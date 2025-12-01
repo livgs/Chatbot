@@ -80,11 +80,10 @@ try {
 
     // Bygg tekstblokk med historikk, og sett rollen "bot" eller "bruker"
     if (!empty($historyRows)) {
-        // Legger alle meldingene inn i et array
         $lines = [];
         foreach ($historyRows as $row) {
             $roleLabel = $row['role'] === 'user' ? 'Bruker' : 'Bot';
-            $lines[] = $roleLabel . ': ' . $row['text'];
+            $lines[]   = $roleLabel . ': ' . $row['text'];
         }
 
         $historyBlock =
@@ -98,7 +97,9 @@ try {
     exit;
 }
 
-// Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
+/**
+ * 1) Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
+ */
 if (!empty($facts) && $asksForSource) {
 
     // Bruk den beste (første) faktaraden
@@ -128,7 +129,9 @@ if (!empty($facts) && $asksForSource) {
     exit;
 }
 
-// Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
+/**
+ * 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
+ */
 if (!empty($facts)) {
 
     // Formater fakta som punktliste
@@ -155,7 +158,8 @@ if (!empty($facts)) {
         "Spørsmål: " . $userMessage . "\n\n" .
         "Svar:";
 
-    askOllamaStream($modelPrompt, 0.0);
+    // Kall modellen og få ett samlet svar
+    $answer = askOllamaStream($modelPrompt, 0.0);
 
 } else {
 
@@ -164,7 +168,17 @@ if (!empty($facts)) {
         ($historyBlock !== '' ? $historyBlock . "\n" : "") .
         "Spørsmål: " . $userMessage;
 
-    askOllamaStream($modelPrompt, 0.3);
+    $answer = askOllamaStream($modelPrompt, 0.3);
 }
 
-?>
+// Felles håndtering: hvis vi fikk et svar, lagre og send til klient
+if ($answer === null || $answer === '') {
+    echo "data: Det oppstod en feil mot språkmodellen.\n\n";
+    flush();
+    exit;
+}
+
+saveChatMessage($chatSessionId, 'bot', $answer, null);
+echo "data: " . $answer . "\n\n";
+flush();
+exit;
