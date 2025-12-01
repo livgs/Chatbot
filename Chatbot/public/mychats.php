@@ -38,10 +38,10 @@ try {
                last_active_utc,
                client_label
         FROM chat_sessions
-        WHERE user_id = :user_id
+        WHERE id_user = :id_user
         ORDER BY last_active_utc DESC
     ");
-    $stmt->execute([':user_id' => $userId]);
+    $stmt->execute([':id_user' => $userId]);
     $sessions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (Throwable $exception) {

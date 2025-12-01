@@ -5,7 +5,7 @@
 -- Dumped from database version 17.4
 -- Dumped by pg_dump version 17.0
 
--- Started on 2025-11-30 18:05:54 CET
+-- Started on 2025-12-01 11:04:47 CET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -126,7 +126,7 @@ CREATE TABLE public.chat_sessions (
     started_at_utc timestamp with time zone DEFAULT now() NOT NULL,
     last_active_utc timestamp with time zone DEFAULT now() NOT NULL,
     client_label character varying(255),
-    user_id integer
+    id_user integer NOT NULL
 );
 
 
@@ -367,12 +367,12 @@ ALTER TABLE ONLY public.chat_messages
 
 
 --
--- TOC entry 3594 (class 2606 OID 26449)
--- Name: chat_sessions chat_sessions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- TOC entry 3594 (class 2606 OID 26496)
+-- Name: chat_sessions chat_sessions_id_user_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.chat_sessions
-    ADD CONSTRAINT chat_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id_user);
+    ADD CONSTRAINT chat_sessions_id_user_fkey FOREIGN KEY (id_user) REFERENCES public.users(id_user);
 
 
 --
@@ -393,7 +393,7 @@ ALTER TABLE ONLY public.fact_tag_links
     ADD CONSTRAINT fact_tag_links_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES public.fact_tags(tag_id) ON DELETE CASCADE;
 
 
--- Completed on 2025-11-30 18:05:54 CET
+-- Completed on 2025-12-01 11:04:47 CET
 
 --
 -- PostgreSQL database dump complete

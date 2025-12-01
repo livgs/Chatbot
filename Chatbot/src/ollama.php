@@ -121,23 +121,17 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
                 if (isset($json['message']['content'])) {
                     $chunk = $json['message']['content'];
 
-                    // Rydd opp spacing i chunken
+                    // veldig enkel variant: send hver chunk rett ut
                     $chunk = $fixSpacing($chunk);
+                    $chunk = cleanWhitespace($chunk);
 
-                    // Legg til buffer
-                    $bufferedText .= $chunk;
-
-                    // Når vi har en hel setning (slutter med . ! ?), send den ut
-                    if (preg_match('/[.!?]$/u', rtrim($bufferedText))) {
-                        $out = $postProcessText($bufferedText);
-                        $out = cleanWhitespace($out);
-
-                        echo "data: " . $out . "\n\n";
-                        $bufferedText = '';
+                    if ($chunk !== '') {
+                        echo "data: " . $chunk . "\n\n";
                         @ob_flush();
                         flush();
                     }
                 }
+
 
                 if (!empty($json['done'])) {
                     if ($bufferedText !== '') {

@@ -1,4 +1,4 @@
-﻿<?php session_start(); ?>
+<?php session_start(); ?>
 <?php if (isset($_SESSION['popup'])): ?>
     <div id="popup" style="
             position: fixed;

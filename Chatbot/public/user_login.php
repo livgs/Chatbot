@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             if ($bruker && password_verify($password, $bruker['password_hash'])) {
                 // Sett innlogget bruker i session
                 $_SESSION['innlogget'] = [
-                    'id' => $bruker['id'],
+                    'id'  => $bruker['id_user'],
                     'email' => $bruker['email'],
                     'first_name' => $bruker['first_name'],
                     'last_name' => $bruker['last_name']
