@@ -3,7 +3,6 @@
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('Connection: keep-alive');
-header('X-Accel-Buffering', 'no'); // for nginx / proxy
 
 // Deaktiver output-buffering og komprimering for sanntidsstrøm
 @ini_set('output_buffering', 'off');
