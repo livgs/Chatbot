@@ -33,27 +33,39 @@ h2 {
     padding: 10px;
     overflow-y: auto;
     margin-bottom: 10px;
+
+    display: flex;
+    flex-direction: column;  /* stabler meldinger vertikalt */
+    gap: 6px;
 }
 
 .msg {
+    display: table;           /* Krymper boblen etter innhold */
+    max-width: 70%;
+    min-width: 50px;
     margin: 6px 0;
     padding: 8px 12px;
     border-radius: 10px;
-    max-width: 45%;
     font-size: 18px;
+    word-wrap: break-word;        /* Bryter lange ord */
+    overflow-wrap: break-word;
+    vertical-align: top;
 }
 .user-msg {
+    display: table;
     background-color: #d1f1ff;
-    text-align: right;
     margin-left: auto;
+    text-align: left;
 }
 .bot-msg {
+    display: table;
     background-color: #f1f1f1;
+    margin-right: auto;
     text-align: left;
 }
 .bot-msg.typing .typing-dots {
     display: inline-block;
-    width: 1.2em;           /* reserver plass for prikkene */
+    width: 1.2em;
     text-align: left;
 }
 
