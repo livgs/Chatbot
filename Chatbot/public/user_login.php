@@ -9,6 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
+    // Enkel validering som sjekker om felt er tomme
     if (!$email || !$password) {
         $melding[] = "Vennligst fyll inn e-post og passord.";
     } else {
@@ -19,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             $stmt->execute([':email' => $email]);
             $bruker = $stmt->fetch();
 
+            // Sjekker om bruker finnes og om passordet matcher hash i DB
             if ($bruker && password_verify($password, $bruker['password_hash'])) {
                 // Sett innlogget bruker i session
                 $_SESSION['innlogget'] = [
@@ -34,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                     'message' => "Du er nå logget inn som {$bruker['first_name']}."
                 ];
 
+                // Sender brukeren til startsiden
                 header("Location: index.php");
                 exit;
             } else {
@@ -45,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     }
 }
 
-// Håndterer visning: inkluder HTML
+// Viser login-skjemaet: inkluder HTML
 include 'user_login_form.php';
 
 ?>

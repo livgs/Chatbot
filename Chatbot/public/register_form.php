@@ -1,4 +1,5 @@
 <?php
+// Setter standardverdier hvis variabelen ikke allerede finnes
 $email = $email ?? "";
 $first_name = $first_name  ?? "";
 $last_name = $last_name ?? "";
@@ -21,7 +22,7 @@ $errors = $errors ?? [];
 
 <div class="register">
 
-        <!-- Feilmeldinger -->
+<!-- Feilmeldinger -->
 <?php if (!empty($errors)): ?>
     <div class="errors">
         <ul>
