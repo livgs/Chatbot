@@ -39,6 +39,9 @@
         // "Bot-boble med ... mens chatboten tenker
         const div = document.createElement("div");
         div.className = "msg bot-msg typing";
+        div.innerHTML = `<span class="typing-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                 </span>`;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
 
