@@ -17,7 +17,7 @@ function getOrCreateChatSession(?int $userId = null): string
         if ($userId !== null) {
             $update = $db->prepare("
                 UPDATE chat_sessions
-                SET id_user = : id_user
+                SET id_user = :id_user
                 WHERE session_id = :session_id
                   AND id_user IS NULL
             ");

@@ -29,9 +29,9 @@ if ($userMessage === '') {
 }
 
 // Finner (eller oppretter) chat-session i databasen
-// Hvis bruker er logget inn forventer vi f.eks. $_SESSION['id_user'] satt av login-koden
-$userId = $_SESSION['innlogget']['id'] ?? null;
-$chatSessionId  = getOrCreateChatSession($userId);
+// Login-koden setter $_SESSION['innlogget']['id'] til users.id_user
+$userId        = $_SESSION['innlogget']['id'] ?? null;
+$chatSessionId = getOrCreateChatSession($userId);
 
 // Lagre brukermeldingen i databasen
 saveChatMessage($chatSessionId, 'user', $userMessage, null);

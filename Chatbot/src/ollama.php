@@ -12,7 +12,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         return;
     }
 
-    // Sørg for at output kan streames
+    // Sørg for at output kan streames til EventSource
     while (ob_get_level() > 0) { @ob_end_flush(); }
     @ob_implicit_flush(true);
 
@@ -50,10 +50,10 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         ]
     ];
 
-    // Payload med temperatur
+    // Payload til Ollama (NB: stream = false nå, vi henter alt i én respons)
     $payload = json_encode([
         "model"    => "llama3",
-        "stream"   => true,
+        "stream"   => false,
         "messages" => $messages,
         "options"  => [
             "temperature"    => $temperature,
@@ -64,93 +64,44 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
 
     $ch = curl_init("http://127.0.0.1:11434/api/chat");
 
-    $bufferedText = '';
-
-    // 1) Fikser mellomrom etter . ! ? (og rydder doble mellomrom)
-    $fixSpacing = static function (string $s): string {
-        // Legger til mellomrom etter punktum, utropstegn og spørsmålstegn hvis neste tegn ikke er mellomrom
-        $s = preg_replace('/([.!?])(?=[^\s])/u', '$1 ', $s);
-        // Samler opp dobbelte mellomrom
-        $s = preg_replace('/ {2,}/', ' ', $s);
-        return $s;
-    };
-
-    // 2) Språk-normalisering
-    $normalizeNorwegian = static function (string $s): string {
-        $replacements = [
-            "/\\bNASA's\\b/u"                        => 'NASAs',
-            "/\\bApollo\\s*11[- ]mission(en)?\\b/ui" => 'Apollo 11-oppdraget',
-            "/\\bmission(en|er)?\\b/ui"             => 'oppdrag',
-            "/\\bmånelandingprogram\\b/ui"         => 'månelandingsprogram',
-            "/\\bmånelanding(en)?\\b/ui"           => 'månelanding',
-            "/gå ut på månens overflate/ui"        => 'gå på månen',
-            "/\\bfeature(s)?\\b/ui"                => 'funksjon',
-            "/\\bperformance\\b/ui"                => 'ytelse',
-            "/\\brequest(s)?\\b/ui"                => 'forespørsel',
-        ];
-        foreach ($replacements as $pattern => $replacement) {
-            $s = preg_replace($pattern, $replacement, $s);
-        }
-        return $s;
-    };
-
-    $postProcessText = static function (string $s) use ($fixSpacing, $normalizeNorwegian): string {
-        return $fixSpacing($normalizeNorwegian($fixSpacing($s)));
-    };
-
     curl_setopt_array($ch, [
         CURLOPT_POST           => true,
         CURLOPT_HTTPHEADER     => ["Content-Type: application/json"],
         CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_RETURNTRANSFER => false,
+        CURLOPT_RETURNTRANSFER => true,   // <- viktig: vi vil ha hele svaret som string
         CURLOPT_TIMEOUT        => 0,
-        CURLOPT_WRITEFUNCTION  => function ($ch, $data) use ($fixSpacing, &$bufferedText, $postProcessText) {
-            $responseLines = explode("\n", $data);
-
-            foreach ($responseLines as $responseLine) {
-                $responseLine = trim($responseLine);
-                if ($responseLine === '') {
-                    continue;
-                }
-
-                $json = json_decode($responseLine, true);
-                if (!is_array($json)) {
-                    continue;
-                }
-
-                if (isset($json['message']['content'])) {
-                    $chunk = $json['message']['content'];
-
-                    // veldig enkel variant: send hver chunk rett ut
-                    $chunk = $fixSpacing($chunk);
-                    $chunk = cleanWhitespace($chunk);
-
-                    if ($chunk !== '') {
-                        echo "data: " . $chunk . "\n\n";
-                        @ob_flush();
-                        flush();
-                    }
-                }
-
-
-                if (!empty($json['done'])) {
-                    if ($bufferedText !== '') {
-                        $out = $postProcessText($bufferedText);
-                        $out = cleanWhitespace($out);
-
-                        echo "data: " . $out . "\n\n";
-                        $bufferedText = '';
-                        @ob_flush();
-                        flush();
-                    }
-                }
-            }
-
-            return strlen($data);
-        },
     ]);
 
-    curl_exec($ch);
+    $rawResponse = curl_exec($ch);
+
+    if ($rawResponse === false) {
+        $errorMsg = curl_error($ch);
+        curl_close($ch);
+
+        // Send feilmelding til klienten
+        echo "data: Det oppstod en feil mot Ollama: $errorMsg\n\n";
+        @ob_flush(); flush();
+        return;
+    }
+
     curl_close($ch);
+
+    // Ollama svarer med ett JSON-objekt når stream = false
+    $json = json_decode($rawResponse, true);
+
+    if (!is_array($json) || empty($json['message']['content'])) {
+        echo "data: Jeg klarte ikke å tolke svaret fra modellen.\n\n";
+        @ob_flush(); flush();
+        return;
+    }
+
+    $answer = $json['message']['content'];
+
+    // Litt enkel språk/whitespace-rydding (kan utvides senere)
+    $answer = cleanWhitespace($answer);
+
+    // Send som ett SSE-event
+    echo "data: " . $answer . "\n\n";
+    @ob_flush(); flush();
 }
 ?>
