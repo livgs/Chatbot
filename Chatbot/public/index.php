@@ -101,9 +101,6 @@ if ($userId) {
             <button class="btn auth-logout-btn" onclick="window.location.href='logout.php'">
                 Logg ut (<?= htmlspecialchars($_SESSION['innlogget']['first_name']) ?>)
             </button>
-            <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
-                Mine chats
-            </button>
         <?php endif; ?>
         <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
             Mine chatter
