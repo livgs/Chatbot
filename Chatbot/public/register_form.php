@@ -22,7 +22,7 @@ $errors = $errors ?? [];
 
 <div class="register">
 
-<!-- Feilmeldinger -->
+// Feilmeldinger
 <?php if (!empty($errors)): ?>
     <div class="errors">
         <ul>

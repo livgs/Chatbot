@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../src/db.php';
 
+// Hent siste samtale (maks 20 meldinger) for innlogget bruker
 $initialMessages = [];
 $userId = $_SESSION['innlogget']['id'] ?? null;
 
@@ -46,16 +47,25 @@ if ($userId) {
 }
 ?>
 <?php if (isset($_SESSION['popup'])): ?>
+    <div id="popup"
+         class="popup <?= $_SESSION['popup']['type'] === 'success' ? 'popup-success' : 'popup-error' ?>">
+        <?= htmlspecialchars($_SESSION['popup']['message']) ?>
     <div id="popup" class="<?= $_SESSION['popup']['type'] === 'success' ? 'success' : 'error' ?>">
         <?= htmlspecialchars($_SESSION['popup']['message']) ?>
     </div>
+
     <script>
+        setTimeout(() => {
+            const popup = document.getElementById('popup');
+            if (popup) popup.style.display = 'none';
+        }, 5000);
         const popup = document.getElementById('popup');
         if (popup) {
             popup.style.display = 'block';
             setTimeout(() => popup.style.display = 'none', 5000);
         }
     </script>
+
     <?php unset($_SESSION['popup']); ?>
 <?php endif; ?>
 
@@ -95,12 +105,15 @@ if ($userId) {
                 Mine chats
             </button>
         <?php endif; ?>
+        <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
+            Mine chatter
+        </button>
 
 
     </div>
 </div>
 
-<!-- Gjør historikken tilgjengelig for script.js -->
+// Gjør historikken tilgjengelig for script.js
 <script>
     window.initialMessages = <?= json_encode(
             $initialMessages,

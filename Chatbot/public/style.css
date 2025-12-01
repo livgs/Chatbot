@@ -351,3 +351,30 @@ a.back-link {
 a.back-link:hover {
     text-decoration: underline;
 }
+
+.popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 25px;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    animation: popupFade 0.3s ease-out;
+}
+
+.popup-success {
+    background-color: #4CAF50;
+}
+
+.popup-error {
+    background-color: #f44336;
+}
+
+@keyframes popupFade {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

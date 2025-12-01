@@ -97,9 +97,8 @@ try {
     exit;
 }
 
-/**
- * 1) Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
- */
+// 1) Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
+
 if (!empty($facts) && $asksForSource) {
 
     // Bruk den beste (første) faktaraden
@@ -129,9 +128,9 @@ if (!empty($facts) && $asksForSource) {
     exit;
 }
 
-/**
- * 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
- */
+
+ // 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
+
 if (!empty($facts)) {
 
     // Formater fakta som punktliste
