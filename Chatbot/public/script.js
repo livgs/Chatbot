@@ -19,6 +19,7 @@
         const div = document.createElement("div");
         div.className = sender === "user" ? "msg user-msg" : "msg bot-msg";
 
+        // Bruk innerHTML for boten (for evt. HTML i meldingen), textContent for brukeren
         if (sender === "bot") {
             div.innerHTML = text;
         } else {
@@ -33,10 +34,11 @@
         const text = input.value.trim();
         if (!text) return;
 
+        // Vis brukerens melding
         addMessage(text, "user");
         input.value = "";
 
-        // "Bot-boble med ... mens chatboten tenker
+        // Bot-boble med ... mens chatbot-en tenker
         const div = document.createElement("div");
         div.className = "msg bot-msg typing";
         div.innerHTML = `<span class="typing-dots">
@@ -53,11 +55,13 @@
         evtSource.onmessage = function(event) {
             const text = event.data;
 
+            // Når første del av meldingen mottas, fjernes "typing" og starter å vise tekst
             if (!receivedFirstChunk) {
                 div.classList.remove("typing");
                 div.textContent = "";
                 receivedFirstChunk = true;
             } else {
+                // Mellomrom mellom chunks
                 if (div.textContent && !div.textContent.endsWith(' ') && !text.startsWith(' ')) {
                     div.textContent += ' ';
                 }
@@ -67,7 +71,7 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         };
 
-
+        // Håndter EventSource-feil, og lukk forbindelsen
         evtSource.onerror = function() {
             evtSource.close();
         };

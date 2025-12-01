@@ -60,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':password_hash' => $hash,
         ]);
 
+        // 6) Lagre brukerinfo i session for å automatisk logge inn
         $_SESSION['innlogget'] = [
             'id' => $pdo->lastInsertId(),
             'email' => $email,
@@ -67,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'last_name' => $last_name,
         ];
 
+        // Popup-melding på index
         $_SESSION['popup'] = [
             'type' => 'success',
             'message' => "Registrering vellykket! Du er nå registrert som $first_name."
