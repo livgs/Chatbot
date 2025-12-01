@@ -2,12 +2,13 @@
 session_start();
 require_once __DIR__ . '/../src/db.php';
 
-// Hent siste chat-session for brukeren
+// Hent siste samtale (maks 20 meldinger) for innlogget bruker
 $initialMessages = [];
 $userId = $_SESSION['innlogget']['id'] ?? null;
 
 if ($userId) {
     $userId = (int)$userId;
+
     try {
         $db = get_db_connection();
 
@@ -25,7 +26,7 @@ if ($userId) {
         if ($row) {
             $latestSessionId = $row['session_id'];
 
-            // Hent de siste (maks) 20 meldingene i kronologisk rekkefølge
+            // Hent de siste meldingene (maks 20)
             $msgStmt = $db->prepare("
                 SELECT role, text
                 FROM chat_messages
@@ -36,31 +37,17 @@ if ($userId) {
             $msgStmt->execute([':session_id' => $latestSessionId]);
             $initialMessages = $msgStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Bruk samme session_id videre i chat.php
+            // Sett samme session_id til bruk i chat.php
             $_SESSION['chat_session_id'] = $latestSessionId;
         }
+
     } catch (Throwable $e) {
-        die('Feil ved henting av chatter: ' . $e->getMessage());
+        // Logg teknisk info – vis ikke til bruker
+        error_log('[index] Feil ved henting av historikk: ' . $e->getMessage());
+        $initialMessages = [];
     }
 }
 ?>
-<?php if (isset($_SESSION['popup'])): ?>
-    <div id="popup" class="<?= $_SESSION['popup']['type'] === 'success' ? 'success' : 'error' ?>">
-        <?= htmlspecialchars($_SESSION['popup']['message']) ?>
-    </div>
-
-    <script>
-        const popup = document.getElementById('popup');
-        if (popup) {
-            popup.style.display = 'block';
-            setTimeout(() => popup.style.display = 'none', 5000);
-        }
-    </script>
-
-    <?php unset($_SESSION['popup']); ?>
-<?php endif; ?>
-
-
 
 <!DOCTYPE html>
 <html lang="no">
@@ -76,6 +63,7 @@ if ($userId) {
     <h2 class="title-left">Velkommen til vår astronomi-chatbot!</h2>
 
     <div id="chatBox"></div>
+
     <div class="input-row">
         <input type="text" id="input" placeholder="Skriv melding...">
         <button class="btn btn-submit" id="sendBtn">Send</button>
@@ -97,17 +85,17 @@ if ($userId) {
                 Mine chatter
             </button>
         <?php endif; ?>
-
     </div>
 </div>
 
-<!--Gjør historikken tilgjengelig for script.js-->
+<!-- Gjør historikken tilgjengelig for script.js -->
 <script>
     window.initialMessages = <?= json_encode(
             $initialMessages,
             JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
     ); ?>;
 </script>
+
 <script src="script.js"></script>
 </body>
 </html>

@@ -35,8 +35,8 @@ try {
     exit;
 
 } catch (Throwable $e) {
-    // Ved feil: returner tom liste (så siden fortsatt funker)
+    // Logg teknisk feil, men returner tom liste slik at UI fortsatt fungerer
+    error_log('[load_history] Feil ved henting av historikk: ' . $e->getMessage());
     echo json_encode([]);
     exit;
 }
-

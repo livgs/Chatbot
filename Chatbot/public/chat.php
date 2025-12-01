@@ -3,7 +3,7 @@
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('Connection: keep-alive');
-header('X-Accel-Buffering: no'); // for nginx / proxy
+header('X-Accel-Buffering', 'no'); // for nginx / proxy
 
 // Deaktiver output-buffering og komprimering for sanntidsstrøm
 @ini_set('output_buffering', 'off');
@@ -92,15 +92,15 @@ try {
     }
 
 } catch (Throwable $exception) {
-    echo "data: Det oppstod en feil med databasen.\n\n";
+    // Ved databasefeil: logg teknisk info og send en vennlig melding til klienten
+    error_log('[chat.php] DB-feil: ' . $exception->getMessage());
+    echo "data: Det oppstod en feil med databasen. Prøv igjen senere.\n\n";
     flush();
     exit;
 }
 
 // 1) Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
-
 if (!empty($facts) && $asksForSource) {
-
     // Bruk den beste (første) faktaraden
     $bestFactText   = trim($facts[0]['text']   ?? '');
     $bestFactSource = trim($facts[0]['source'] ?? '');
@@ -128,11 +128,8 @@ if (!empty($facts) && $asksForSource) {
     exit;
 }
 
-
- // 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
-
+// 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
 if (!empty($facts)) {
-
     // Formater fakta som punktliste
     $factLines = [];
     foreach ($facts as $fact) {
@@ -157,11 +154,8 @@ if (!empty($facts)) {
         "Spørsmål: " . $userMessage . "\n\n" .
         "Svar:";
 
-    // Kall modellen og få ett samlet svar
     $answer = askOllamaStream($modelPrompt, 0.0);
-
 } else {
-
     // Ingen fakta funnet -> la modellen svare fritt, men med kort historikk
     $modelPrompt =
         ($historyBlock !== '' ? $historyBlock . "\n" : "") .
@@ -172,7 +166,8 @@ if (!empty($facts)) {
 
 // Felles håndtering: hvis vi fikk et svar, lagre og send til klient
 if ($answer === null || $answer === '') {
-    echo "data: Det oppstod en feil mot språkmodellen.\n\n";
+    error_log('[chat.php] Tomt eller null-svar fra språkmodellen.');
+    echo "data: Det oppstod en feil mot språkmodellen. Prøv igjen senere.\n\n";
     flush();
     exit;
 }

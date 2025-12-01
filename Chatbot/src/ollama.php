@@ -1,7 +1,6 @@
 <?php
 // Hjelpefunksjon som rydder opp i whitespace
 function cleanWhitespace(string $text): string {
-    // Erstatter all whitespace (linjeskift, tab osv.) med ett enkelt mellomrom
     $text = preg_replace('/\s+/u', ' ', $text);
     return trim($text);
 }
@@ -12,7 +11,6 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): ?
         return null;
     }
 
-    // Bygg system- og user-meldinger, inkl. stilguide og domenebegrensning
     $messages = [
         [
             "role" => "system",
@@ -55,10 +53,9 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): ?
         ]
     ];
 
-    // Lag JSON-payload til Ollama med konservative innstillinger
     $payload = json_encode([
         "model"    => "llama3",
-        "stream"   => false,   // vi får hele svaret i én respons
+        "stream"   => false,
         "messages" => $messages,
         "options"  => [
             "temperature"    => $temperature,
@@ -73,29 +70,28 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): ?
         CURLOPT_POST           => true,
         CURLOPT_HTTPHEADER     => ["Content-Type: application/json"],
         CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_RETURNTRANSFER => true,   // vi vil ha hele svaret som string
+        CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 0,
     ]);
 
     $rawResponse = curl_exec($ch);
 
     if ($rawResponse === false) {
+        error_log('[Ollama] cURL-feil: ' . curl_error($ch));
         curl_close($ch);
         return null;
     }
 
     curl_close($ch);
 
-    // Konverter JSON-respons til PHP-array og sjekk at innhold finnes
     $json = json_decode($rawResponse, true);
 
     if (!is_array($json) || empty($json['message']['content'])) {
+        error_log('[Ollama] Ugyldig svar: ' . $rawResponse);
         return null;
     }
 
     $answer = $json['message']['content'];
-
-    // Whitespace-rydding
     $answer = cleanWhitespace($answer);
 
     return $answer;
