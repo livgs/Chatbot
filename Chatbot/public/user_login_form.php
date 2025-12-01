@@ -26,7 +26,7 @@
     <form method="POST" action="user_login.php">
         <div class="form-row">
             <label for="Epost">Epost:</label>
-            <input type="text" name="email" id="Epost">
+            <input type="email" name="email" id="Epost">
         </div>
 
         <div class="form-row">
