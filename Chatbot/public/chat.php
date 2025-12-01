@@ -5,12 +5,13 @@ header('Cache-Control: no-cache');
 header('Connection: keep-alive');
 header('X-Accel-Buffering: no'); // for nginx / proxy
 
+// Deaktiver output-buffering og komprimering for sanntidsstrøm
 @ini_set('output_buffering', 'off');
 @ini_set('zlib.output_compression', false);
 while (ob_get_level() > 0) ob_end_flush();
 ob_implicit_flush(true);
 
-// Starter PHP-session (for innlogging + chat_session_id)
+// Starter PHP-session (for innlogging og chat_session_id)
 session_start();
 
 // Laster inn filer
@@ -18,7 +19,7 @@ require_once __DIR__ . '/../src/ollama.php';
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/chat_storage.php';
 
-// Henter brukermelding
+// Hent og trim brukerens melding
 $userMessage = $_GET['message'] ?? '';
 $userMessage = trim($userMessage);
 
@@ -28,7 +29,7 @@ if ($userMessage === '') {
     exit;
 }
 
-// Finner (eller oppretter) chat-session i databasen
+// Hent eller opprett chat-session
 // Login-koden setter $_SESSION['innlogget']['id'] til users.id_user
 $userId        = $_SESSION['innlogget']['id'] ?? null;
 $chatSessionId = getOrCreateChatSession($userId);
@@ -46,7 +47,7 @@ $historyBlock = '';
 try {
     $dbConnection = get_db_connection();
 
-    // --- 2.1 Fakta-søk (som før) ---
+    // Hent relevante fakta fra databasen basert på brukerens melding
     $sql = "
         WITH q AS (
             SELECT websearch_to_tsquery('norwegian', :q) AS tsq
@@ -66,8 +67,7 @@ try {
     $findFactsStmt->execute([':q' => $userMessage]);
     $facts = $findFactsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // --- 2.2 Hent siste meldinger i denne chat-sesjonen (for kontekst) ---
-    // F.eks. de siste 6 meldingene (både bruker og bot)
+    // Hent siste meldinger i denne chat-sesjonen (for kontekst)
     $historyStmt = $dbConnection->prepare("
         SELECT role, text
         FROM chat_messages
@@ -78,7 +78,9 @@ try {
     $historyStmt->execute([':session_id' => $chatSessionId]);
     $historyRows = array_reverse($historyStmt->fetchAll(PDO::FETCH_ASSOC)); // eldste først
 
+    // Bygg tekstblokk med historikk, og sett rollen "bot" eller "bruker"
     if (!empty($historyRows)) {
+        // Legger alle meldingene inn i et array
         $lines = [];
         foreach ($historyRows as $row) {
             $roleLabel = $row['role'] === 'user' ? 'Bruker' : 'Bot';
@@ -96,7 +98,7 @@ try {
     exit;
 }
 
-// 1) Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
+// Hvis vi har fakta og brukeren spør om kilde -> svar direkte fra databasen
 if (!empty($facts) && $asksForSource) {
 
     // Bruk den beste (første) faktaraden
@@ -126,7 +128,7 @@ if (!empty($facts) && $asksForSource) {
     exit;
 }
 
-// 2) Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
+// Ellers: bygg prompt til modellen (RAG + LLM + kort historikk)
 if (!empty($facts)) {
 
     // Formater fakta som punktliste

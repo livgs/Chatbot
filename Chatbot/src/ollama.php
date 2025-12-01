@@ -1,24 +1,27 @@
 <?php
-// Hjelpefunksjon: rydder opp i whitespace
+// Hjelpefunksjon som rydder opp i whitespace
 function cleanWhitespace(string $text): string {
     // Erstatter all whitespace (linjeskift, tab osv.) med ett enkelt mellomrom
     $text = preg_replace('/\s+/u', ' ', $text);
     return trim($text);
 }
 
+//Funksjon for å ta inn brukerens melding og en temperaturverdi
+//Sender meldingene til Ollama-modellen, mottar et svar, og streamer det tilbake til frontend
 function askOllamaStream(string $userMessage = '', float $temperature = 0.15): void
 {
+    // Avbryt hvis ingen melding
     if ($userMessage === '') {
         return;
     }
 
-    // Sørg for at output kan streames til EventSource
+    // Sørger for at output kan streames til EventSource ved å tømme alle PHP-output-buffere
     while (ob_get_level() > 0) {
         @ob_end_flush();
     }
     @ob_implicit_flush(true);
 
-    // Stilguide + strengere faktakrav og domenebegrensning
+    // Bygg system- og user meldinger, inkludert stilguide + strengere faktakrav og domenebegrensning
     $messages = [
         [
             "role" => "system",
@@ -70,7 +73,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
         ]
     ];
 
-    // Payload til Ollama – mer konservative innstillinger
+    // Lag JSON-payload til Ollama med konservative innstillinger
     $payload = json_encode([
         "model"    => "llama3",
         "stream"   => false,
@@ -83,6 +86,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
         ]
     ]);
 
+    // Send request til Ollama og hent respons som streng
     $ch = curl_init("http://127.0.0.1:11434/api/chat");
 
     curl_setopt_array($ch, [
@@ -107,6 +111,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
 
     curl_close($ch);
 
+    // Konverter JSON-respons til PHP-array og sjekk at innhold finnes
     $json = json_decode($rawResponse, true);
 
     if (!is_array($json) || empty($json['message']['content'])) {
@@ -118,7 +123,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.15): v
 
     $answer = $json['message']['content'];
 
-    // Enkel språk/whitespace-rydding
+    // Whitespace-rydding som gir en klar melding som kan vises i chatten uten forsinkelse
     $answer = cleanWhitespace($answer);
 
     echo "data: " . $answer . "\n\n";
