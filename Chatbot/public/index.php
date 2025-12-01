@@ -7,7 +7,6 @@ $initialMessages = [];
 $userId = $_SESSION['innlogget']['id'] ?? null;
 
 // Hent siste chat-session for brukeren
-
 if ($userId) {
     $userId = (int)$userId;
     try {
@@ -47,18 +46,11 @@ if ($userId) {
 }
 ?>
 <?php if (isset($_SESSION['popup'])): ?>
-    <div id="popup"
-         class="popup <?= $_SESSION['popup']['type'] === 'success' ? 'popup-success' : 'popup-error' ?>">
-        <?= htmlspecialchars($_SESSION['popup']['message']) ?>
     <div id="popup" class="<?= $_SESSION['popup']['type'] === 'success' ? 'success' : 'error' ?>">
         <?= htmlspecialchars($_SESSION['popup']['message']) ?>
     </div>
 
     <script>
-        setTimeout(() => {
-            const popup = document.getElementById('popup');
-            if (popup) popup.style.display = 'none';
-        }, 5000);
         const popup = document.getElementById('popup');
         if (popup) {
             popup.style.display = 'block';
@@ -68,6 +60,7 @@ if ($userId) {
 
     <?php unset($_SESSION['popup']); ?>
 <?php endif; ?>
+
 
 
 <!DOCTYPE html>
@@ -101,11 +94,10 @@ if ($userId) {
             <button class="btn auth-logout-btn" onclick="window.location.href='logout.php'">
                 Logg ut (<?= htmlspecialchars($_SESSION['innlogget']['first_name']) ?>)
             </button>
+            <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
+                Mine chatter
+            </button>
         <?php endif; ?>
-        <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
-            Mine chatter
-        </button>
-
 
     </div>
 </div>

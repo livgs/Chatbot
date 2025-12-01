@@ -46,6 +46,13 @@ if (!$userId) {
 <h1>Mine tidligere chatter</h1>
 </div>
 
+<?php if (empty($sessions)): ?>
+    <p class="session-card">
+        Du har ingen lagrede chatter ennå.
+    </p>
+<?php endif; ?>
+
+
 <?php foreach ($sessions as $session): ?>
     <?php
     $sessionId   = $session['session_id'];
