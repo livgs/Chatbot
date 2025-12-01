@@ -43,21 +43,25 @@ if ($userId === null) {
     <title>Mine chatter</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+<div class="header-row">
+<button class="btn btn-return" onclick="window.location.href='index.php'">
+    &larr; Tilbake til chatbot
+</button>
 <h1>Mine tidligere chatter</h1>
+</div>
 
 <?php if ($mustLogin): ?>
 
     <div class="empty">
         <p>Du må være logget inn for å se lagrede chatter.</p>
-        <p><a class="back-link" href="index.php">Til forsiden</a></p>
     </div>
 
 <?php elseif ($dbError): ?>
 
     <div class="empty">
         <p>Det oppstod en feil med databasen. Prøv igjen senere.</p>
-        <p><a class="back-link" href="index.php">Til forsiden</a></p>
     </div>
 
 <?php elseif (empty($sessions)): ?>
@@ -121,8 +125,6 @@ if ($userId === null) {
     <?php endforeach; ?>
 
 <?php endif; ?>
-
-<p><a class="back-link" href="index.php">&larr; Tilbake til chatbot</a></p>
 
 </body>
 </html>

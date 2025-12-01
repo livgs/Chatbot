@@ -96,6 +96,9 @@ if (!empty($_SESSION['innlogget']['id'])) {
                 Logg ut (<?= htmlspecialchars($_SESSION['innlogget']['first_name']) ?>)
             </button>
         <?php endif; ?>
+        <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
+            Mine chats
+        </button>
     </div>
 </div>
 
