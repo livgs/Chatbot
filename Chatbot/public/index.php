@@ -113,7 +113,7 @@ if ($userId) {
     </div>
 </div>
 
-// Gjør historikken tilgjengelig for script.js
+<!--Gjør historikken tilgjengelig for script.js-->
 <script>
     window.initialMessages = <?= json_encode(
             $initialMessages,
