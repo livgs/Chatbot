@@ -2,67 +2,63 @@
 session_start();
 require_once __DIR__ . '/../src/db.php';
 
-// ---- Hent siste samtale (maks 20 meldinger) for innlogget bruker ----
 $initialMessages = [];
+$userId = $_SESSION['innlogget']['id'] ?? null;
 
-if (!empty($_SESSION['innlogget']['id'])) {
-    $userId = (int) $_SESSION['innlogget']['id'];
-    $db     = get_db_connection();
+// Hent siste chat-session for brukeren
 
-    // Finn siste chat-session for denne brukeren
-    $stmt = $db->prepare("
-        SELECT session_id
-        FROM chat_sessions
-        WHERE id_user = :id_user
-        ORDER BY last_active_utc DESC
-        LIMIT 1
-    ");
-    $stmt->execute([':id_user' => $userId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($userId) {
+    $userId = (int)$userId;
+    try {
+        $db = get_db_connection();
 
-    if ($row) {
-        $latestSessionId = $row['session_id'];
-
-        // Hent de siste (maks) 20 meldingene i kronologisk rekkefølge
-        $msgStmt = $db->prepare("
-            SELECT role, text
-            FROM chat_messages
-            WHERE session_id = :session_id
-            ORDER BY created_at_utc ASC
-            LIMIT 20
+        // Finn siste chat-session for denne brukeren
+        $stmt = $db->prepare("
+            SELECT session_id
+            FROM chat_sessions
+            WHERE id_user = :id_user
+            ORDER BY last_active_utc DESC
+            LIMIT 1
         ");
-        $msgStmt->execute([':session_id' => $latestSessionId]);
-        $initialMessages = $msgStmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([':id_user' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Bruk samme session_id videre i chat.php
-        $_SESSION['chat_session_id'] = $latestSessionId;
+        if ($row) {
+            $latestSessionId = $row['session_id'];
+
+            // Hent de siste (maks) 20 meldingene i kronologisk rekkefølge
+            $msgStmt = $db->prepare("
+                SELECT role, text
+                FROM chat_messages
+                WHERE session_id = :session_id
+                ORDER BY created_at_utc ASC
+                LIMIT 20
+            ");
+            $msgStmt->execute([':session_id' => $latestSessionId]);
+            $initialMessages = $msgStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Bruk samme session_id videre i chat.php
+            $_SESSION['chat_session_id'] = $latestSessionId;
+        }
+    } catch (Throwable $e) {
+        die('Feil ved henting av chatter: ' . $e->getMessage());
     }
 }
 ?>
 <?php if (isset($_SESSION['popup'])): ?>
-    <div id="popup" style="
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: <?= $_SESSION['popup']['type'] === 'success' ? '#4CAF50' : '#f44336' ?>;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            z-index: 1000;
-            font-size: 16px;
-            ">
-        <?= $_SESSION['popup']['message'] ?>
+    <div id="popup" class="<?= $_SESSION['popup']['type'] === 'success' ? 'success' : 'error' ?>">
+        <?= htmlspecialchars($_SESSION['popup']['message']) ?>
     </div>
     <script>
-        setTimeout(() => {
-            const popup = document.getElementById('popup');
-            if (popup) popup.style.display = 'none';
-        }, 5000); // vises i 5 sekunder
+        const popup = document.getElementById('popup');
+        if (popup) {
+            popup.style.display = 'block';
+            setTimeout(() => popup.style.display = 'none', 5000);
+        }
     </script>
     <?php unset($_SESSION['popup']); ?>
 <?php endif; ?>
+
 
 <!DOCTYPE html>
 <html lang="no">
@@ -95,10 +91,12 @@ if (!empty($_SESSION['innlogget']['id'])) {
             <button class="btn auth-logout-btn" onclick="window.location.href='logout.php'">
                 Logg ut (<?= htmlspecialchars($_SESSION['innlogget']['first_name']) ?>)
             </button>
+            <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
+                Mine chats
+            </button>
         <?php endif; ?>
-        <button class="btn mychats-btn" onclick="window.location.href='mychats.php'">
-            Mine chats
-        </button>
+
+
     </div>
 </div>
 

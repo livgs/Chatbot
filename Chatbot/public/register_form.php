@@ -16,7 +16,7 @@ $errors = $errors ?? [];
 
 <body>
 <div class="header-row">
-    <button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot</button>
+    <button class="btn btn-return" onclick="window.location.href='index.php'"> &larr; Tilbake til chatbot</button>
     <h2>Registrer ny bruker</h2>
 </div>
 

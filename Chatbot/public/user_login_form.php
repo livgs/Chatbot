@@ -7,7 +7,7 @@
 </head>
 <body>
 <div class="header-row">
-<button class="btn btn-return" onclick="window.location.href='index.php'">Tilbake til chatbot</button>
+<button class="btn btn-return" onclick="window.location.href='index.php'"> &larr; Tilbake til chatbot</button>
 <h2>Logg inn</h2>
 </div>
 
