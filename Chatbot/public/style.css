@@ -226,7 +226,7 @@ h2 {
 }
 
 .btn-submit:hover {
-    background-color: #00b894; /* grønn/teal */
+    background-color: #00b894;
     transform: scale(1.03);
 }
 

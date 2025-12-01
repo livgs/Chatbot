@@ -20,7 +20,7 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // ---- 1) Last tidligere meldinger fra serveren ----
+    // 1) Last tidligere meldinger fra serveren
     fetch("load_history.php")
         .then((res) => res.json())
         .then((history) => {
@@ -49,7 +49,7 @@
             );
         });
 
-    // ---- 2) Vanlig chat-funksjonalitet ----
+    // 2) Vanlig chat-funksjonalitet
     input.addEventListener("keypress", async (e) => {
         if (e.key === "Enter") await sendMessage();
     });

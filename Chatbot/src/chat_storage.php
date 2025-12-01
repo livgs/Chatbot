@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 
+// Hent eksisterende chat-session fra PHP-session, eller opprett en ny i databasen
 function getOrCreateChatSession(?int $userId = null): string
 {
     if (session_status() !== PHP_SESSION_ACTIVE) {

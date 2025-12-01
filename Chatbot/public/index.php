@@ -2,11 +2,10 @@
 session_start();
 require_once __DIR__ . '/../src/db.php';
 
-// Hent siste samtale (maks 20 meldinger) for innlogget bruker
+// Hent siste chat-session for brukeren
 $initialMessages = [];
 $userId = $_SESSION['innlogget']['id'] ?? null;
 
-// Hent siste chat-session for brukeren
 if ($userId) {
     $userId = (int)$userId;
     try {
