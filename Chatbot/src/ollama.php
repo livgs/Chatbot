@@ -6,7 +6,7 @@ function cleanWhitespace(string $text): string {
     return trim($text);
 }
 
-function askOllamaStream(string $userMessage = '', float $temperature = 0.3): void
+function askOllamaStream(string $userMessage = '', float $temperature = 0.15): void
 {
     if ($userMessage === '') {
         return;
@@ -16,22 +16,31 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
     while (ob_get_level() > 0) { @ob_end_flush(); }
     @ob_implicit_flush(true);
 
-    // Stilguide + few-shot
+    // Stilguide + strengere faktakrav og domenebegrensning
     $messages = [
         [
             "role" => "system",
             "content" =>
-                "Du skriver KUN på korrekt norsk bokmål. Ikke bland inn engelsk eller dansk eller andre språk.\n" .
-                "Hold språket nøytralt, presist og kort (2–4 setninger).\n" .
-                "Bruk norske fagtermer. Eksempler: 'nettleser' (ikke 'browser'), 'ytelse' (ikke 'performance'), 'funksjon' (ikke 'feature'), 'forespørsel' (ikke 'request').\n" .
+                "Du skriver KUN på korrekt norsk bokmål. Ikke bland inn engelsk, dansk eller andre språk.\n" .
+                "Hold språket nøytralt, presist og kort (helst 2–4 setninger).\n" .
+                "Bruk norske fagtermer. Eksempler: 'nettleser' (ikke 'browser'), 'ytelse' (ikke 'performance'), " .
+                "'funksjon' (ikke 'feature'), 'forespørsel' (ikke 'request').\n" .
                 "Skriv 'NASAs', ikke 'NASA's'. Skriv 'oppdrag' eller 'ferd', ikke 'mission'.\n" .
-                "Sett mellomrom etter punktum, spørsmålstegn og utropstegn."
+                "Sett mellomrom etter punktum, spørsmålstegn og utropstegn.\n" .
+                "Hvis du ikke er rimelig sikker på et faktasvar, skal du si at du ikke er sikker og unngå å gjette."
         ],
         [
             "role" => "system",
             "content" =>
-                "Du er en vennlig astronomi-assistent. Svar bare på astronomi. " .
-                "Hvis spørsmålet ikke gjelder astronomi: Svar nøyaktig 'Det veit jeg ikke, jeg er bare en liten astronomibot'."
+                "Du er en STRENG astronomi-assistent.\n" .
+                "- Du svarer bare på spørsmål som handler om astronomi, astrofysikk, solsystemet, stjerner, galakser, " .
+                "kosmologi eller romfart (for eksempel NASA, ESA, romsonder, raketter).\n" .
+                "- Hvis spørsmålet ikke gjelder astronomi eller romfart, skal du svare nøyaktig: " .
+                "\"Det veit jeg ikke, jeg er bare en liten astronomibot\".\n" .
+                "- Hvis spørsmålet delvis handler om astronomi og delvis noe annet, svarer du KUN på den astronomiske delen " .
+                "og ignorerer resten.\n" .
+                "- Hvis du er usikker på detaljer (for eksempel tallverdier, årstall eller eksakte avstander), " .
+                "skal du si at du ikke er helt sikker i stedet for å finne på noe."
         ],
         [
             "role" => "user",
@@ -50,14 +59,15 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         ]
     ];
 
-    // Payload til Ollama (NB: stream = false nå, vi henter alt i én respons)
+    // Payload til Ollama – mer konservative innstillinger
     $payload = json_encode([
         "model"    => "llama3",
         "stream"   => false,
         "messages" => $messages,
         "options"  => [
+            // lav temperatur = mindre kreativitet → mindre risiko for å finne på ting
             "temperature"    => $temperature,
-            "top_p"          => 0.9,
+            "top_p"          => 0.7,
             "repeat_penalty" => 1.05
         ]
     ]);
@@ -68,7 +78,7 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         CURLOPT_POST           => true,
         CURLOPT_HTTPHEADER     => ["Content-Type: application/json"],
         CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_RETURNTRANSFER => true,   // <- viktig: vi vil ha hele svaret som string
+        CURLOPT_RETURNTRANSFER => true,   // <- vi vil ha hele svaret som string
         CURLOPT_TIMEOUT        => 0,
     ]);
 
@@ -78,7 +88,6 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
         $errorMsg = curl_error($ch);
         curl_close($ch);
 
-        // Send feilmelding til klienten
         echo "data: Det oppstod en feil mot Ollama: $errorMsg\n\n";
         @ob_flush(); flush();
         return;
@@ -86,7 +95,6 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
 
     curl_close($ch);
 
-    // Ollama svarer med ett JSON-objekt når stream = false
     $json = json_decode($rawResponse, true);
 
     if (!is_array($json) || empty($json['message']['content'])) {
@@ -97,10 +105,9 @@ function askOllamaStream(string $userMessage = '', float $temperature = 0.3): vo
 
     $answer = $json['message']['content'];
 
-    // Litt enkel språk/whitespace-rydding (kan utvides senere)
+    // Enkel språk/whitespace-rydding
     $answer = cleanWhitespace($answer);
 
-    // Send som ett SSE-event
     echo "data: " . $answer . "\n\n";
     @ob_flush(); flush();
 }
